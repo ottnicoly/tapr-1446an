@@ -1,4 +1,38 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"  # Porta 5433 no host, 5432 no container (evita conflito)
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - app-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
   service-discovery:
     build:
       context: ./service-discovery
@@ -16,11 +50,21 @@ services:
     container_name: booking-service
     ports:
      - "8081:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bookingdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_RABBITMQ_HOST: rabbitmq
     volumes:
      - ./booking-service:/app
      - ~/.m2:/root/.m2
     depends_on:
-      - service-discovery
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      service-discovery:
+        condition: service_started
     networks:
      - app-network
   notification-service:
@@ -29,11 +73,21 @@ services:
     container_name: notification-service
     ports:
      - "8082:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/notificationdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_RABBITMQ_HOST: rabbitmq
     volumes:
      - ./notification-service:/app
      - ~/.m2:/root/.m2
     depends_on:
-      - service-discovery
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      service-discovery:
+        condition: service_started
     networks:
      - app-network
   room-service:
@@ -42,11 +96,18 @@ services:
     container_name: room-service
     ports:
       - "8085:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/roomdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
     volumes:
       - ./room-service:/app
       - ~/.m2:/root/.m2
     depends_on:
-      - service-discovery
+      postgres:
+        condition: service_healthy
+      service-discovery:
+        condition: service_started
     networks:
       - app-network
   auth-service:
@@ -55,11 +116,18 @@ services:
     container_name: auth-service
     ports:
      - "8084:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
     volumes:
      - ./auth-service:/app
      - ~/.m2:/root/.m2
     depends_on:
-      - service-discovery
+      postgres:
+        condition: service_healthy
+      service-discovery:
+        condition: service_started
     networks:
      - app-network
   gateway-service:
@@ -91,3 +159,5 @@ services:
 networks:
   app-network:
     driver: bridge
+volumes:
+  postgres-data:
