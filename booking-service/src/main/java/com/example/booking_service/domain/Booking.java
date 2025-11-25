@@ -1,21 +1,24 @@
 package com.example.booking_service.domain;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import com.example.booking_service.domain.vo.BookingId;
 
 public class Booking {
 
     private final BookingId id;
+    private final UUID userId;
     private final String roomId;
     private final LocalDateTime startTime;
     private final LocalDateTime endTime;
     private final String roomType;
     private final int numberOfPeople;
 
-    public Booking(BookingId id, String roomId, LocalDateTime startTime, LocalDateTime endTime, String roomType,
+    public Booking(BookingId id, UUID userId, String roomId, LocalDateTime startTime, LocalDateTime endTime, String roomType,
             int numberOfPeople) {
         this.id = id;
+        this.userId = userId;
         this.roomId = roomId;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -25,6 +28,10 @@ public class Booking {
 
     public BookingId getId() {
         return id;
+    }
+
+    public UUID getUserId() {
+        return userId;
     }
 
     public String getRoomId() {

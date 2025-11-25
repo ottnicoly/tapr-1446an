@@ -24,19 +24,25 @@ public class RoomController {
     private final GetRoomByIdHandler getRoomByIdHandler;
     private final UpdateRoomHandler updateRoomHandler;
     private final CheckAvailabilityHandler checkAvailabilityHandler;
+    private final MarkRoomAsUnavailableHandler markRoomAsUnavailableHandler;
+    private final MarkRoomAsAvailableHandler markRoomAsAvailableHandler;
 
     public RoomController(
         CreateRoomHandler createRoomHandler,
         ListRoomsHandler listRoomsHandler,
         GetRoomByIdHandler getRoomByIdHandler,
         UpdateRoomHandler updateRoomHandler,
-        CheckAvailabilityHandler checkAvailabilityHandler
+        CheckAvailabilityHandler checkAvailabilityHandler,
+        MarkRoomAsUnavailableHandler markRoomAsUnavailableHandler,
+        MarkRoomAsAvailableHandler markRoomAsAvailableHandler
     ) {
         this.createRoomHandler = createRoomHandler;
         this.listRoomsHandler = listRoomsHandler;
         this.getRoomByIdHandler = getRoomByIdHandler;
         this.updateRoomHandler = updateRoomHandler;
         this.checkAvailabilityHandler = checkAvailabilityHandler;
+        this.markRoomAsUnavailableHandler = markRoomAsUnavailableHandler;
+        this.markRoomAsAvailableHandler = markRoomAsAvailableHandler;
     }
 
     @PostMapping
@@ -101,5 +107,17 @@ public class RoomController {
 
         boolean available = checkAvailabilityHandler.handle(query);
         return ResponseEntity.ok(new AvailabilityResponse(available));
+    }
+
+    @PatchMapping("/{id}/mark-unavailable")
+    public ResponseEntity<Void> markAsUnavailable(@PathVariable UUID id) {
+        markRoomAsUnavailableHandler.handle(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/mark-available")
+    public ResponseEntity<Void> markAsAvailable(@PathVariable UUID id) {
+        markRoomAsAvailableHandler.handle(id);
+        return ResponseEntity.noContent().build();
     }
 }

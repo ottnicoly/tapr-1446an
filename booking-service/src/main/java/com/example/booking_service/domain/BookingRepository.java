@@ -1,27 +1,19 @@
 package com.example.booking_service.domain;
 
-import org.springframework.stereotype.Repository;
+import java.util.List;
+import java.util.Optional;
 
-import java.util.*;
+public interface BookingRepository {
 
-@Repository
-public class BookingRepository {
-    private final Map<String, Booking> bookings = new HashMap<>();
+    Booking save(Booking booking);
 
-    public Booking save(Booking booking) {
-        bookings.put(booking.getId().toString(), booking);
-        return booking;
-    }
+    Optional<Booking> findById(String id);
 
-    public Optional<Booking> findById(String id) {
-        return Optional.ofNullable(bookings.get(id));
-    }
+    List<Booking> findAll();
 
-    public List<Booking> findAll() {
-        return new ArrayList<>(bookings.values());
-    }
+    void deleteById(String id);
 
-    public void deleteById(String id) {
-        bookings.remove(id);
-    }
+    List<Booking> findByRoomId(String roomId);
+
+    List<Booking> findByUserId(java.util.UUID userId);
 }
