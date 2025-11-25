@@ -1,6 +1,5 @@
 package com.example.roomservice.domain;
 
-import com.example.roomservice.domain.exception.InvalidCapacityException;
 import com.example.roomservice.domain.exception.RoomNotAvailableException;
 import com.example.roomservice.domain.vo.*;
 
@@ -22,16 +21,15 @@ public class Room {
 
     public static Room create(RoomName name, Capacity capacity, RoomType type) {
         return new Room(
-            RoomId.generate(),
-            name,
-            capacity,
-            type,
-            Availability.available()
-        );
+                RoomId.generate(),
+                name,
+                capacity,
+                type,
+                Availability.available());
     }
 
-
-    public static Room reconstruct(RoomId id, RoomName name, Capacity capacity, RoomType type, Availability availability) {
+    public static Room reconstruct(RoomId id, RoomName name, Capacity capacity, RoomType type,
+            Availability availability) {
         return new Room(id, name, capacity, type, availability);
     }
 
@@ -41,7 +39,6 @@ public class Room {
         }
         this.availability = Availability.unavailable();
     }
-
 
     public void markAsAvailable() {
         if (availability.isAvailable()) {
@@ -99,8 +96,10 @@ public class Room {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         Room room = (Room) o;
         return id.equals(room.id);
     }
